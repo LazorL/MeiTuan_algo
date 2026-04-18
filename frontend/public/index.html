@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Order OvO</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="hero-header">
+            <div class="hero-nav">
+                <div class="hero-brand">
+                    <span class="brand-pill">外卖点餐</span>
+                    <span class="brand-text">Online Order OvO</span>
+                </div>
+                <div class="hero-actions">
+                    <button class="quick-action-btn ghost" onclick="document.getElementById('searchInput').focus()">⌕ 搜索</button>
+                    <button class="quick-action-btn" onclick="window.location.href='add-category.html'">🗂️ 品类管理</button>
+                    <button class="quick-action-btn" onclick="openOrderHistoryModal()">📜 订单历史</button>
+                    <button class="quick-action-btn highlight" onclick="openAddProductModal()">➕ 添加商品</button>
+                    <button class="cart-mini-btn" onclick="toggleCart()">🛒 <span id="headerCartCount">0</span></button>
+                </div>
+            </div>
+
+            <div class="store-card">
+                <div class="store-logo">OvO</div>
+                <div class="store-main">
+                    <div class="store-badges">
+                        <span class="store-badge success">AI 推荐</span>
+                        <span class="store-badge warning">支持口味/食材标签</span>
+                    </div>
+                    <h1 class="shop-name" id="shopName">Online Order OvO</h1>
+                    <div class="shop-stats">
+                        <span class="shop-stat" id="shopRating">⭐ 4.8 (2500+评价)</span>
+                        <span class="shop-stat" id="shopDelivery">📍 3.2km | 🚚 30分钟</span>
+                        <span class="shop-stat" id="recommendationModeLabel">推荐模式加载中</span>
+                    </div>
+                    <p class="store-note">参考美团外卖式布局，保留当前项目已经实现的智能推荐、品类管理、订单历史、购物车与结算功能。</p>
+                </div>
+            </div>
+
+            <div class="mode-switch-row">
+                <button class="mode-switch-btn active">外送</button>
+                <button class="mode-switch-btn">自取</button>
+            </div>
+
+            <div class="marketing-row">
+                <div class="marketing-chip red">神券｜满 28 减 15</div>
+                <div class="marketing-chip gold">会员｜满 100 减 25</div>
+                <div class="marketing-chip">新客再减 2 元</div>
+                <div class="marketing-chip">支持 AI 推荐排序</div>
+            </div>
+
+            <div class="feature-strip">
+                <div class="feature-card clickable" onclick="scrollToCategory('recommend')">
+                    <span class="feature-title">猜你喜欢</span>
+                    <span class="feature-text">直达 AI 推荐分区</span>
+                </div>
+                <div class="feature-card clickable" onclick="openOrderHistoryModal()">
+                    <span class="feature-title">最近 20 单</span>
+                    <span class="feature-text">查看历史订单与偏好来源</span>
+                </div>
+                <div class="feature-card clickable" onclick="openAddProductModal()">
+                    <span class="feature-title">添加菜品</span>
+                    <span class="feature-text">继续扩充菜单并训练偏好</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-tabs">
+            <button class="content-tab active">点菜</button>
+            <button class="content-tab" onclick="openOrderHistoryModal()">订单历史</button>
+            <button class="content-tab" onclick="window.location.href='add-category.html'">品类管理</button>
+        </div>
+
+        <div class="main-layout">
+            <aside class="category-panel">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="搜索菜品、口味或食材..." onkeyup="searchDishes()">
+                </div>
+                <nav class="categories" id="categoriesNav"></nav>
+            </aside>
+
+            <main class="menu-panel">
+                <div class="menu-content" id="menuContent">
+                    <section class="recommendation-banner">
+                        <div>
+                            <h2>智能推荐区</h2>
+                            <p id="recommendationSummary">系统会结合最近订单、口味标签和食材标签进行排序。</p>
+                        </div>
+                        <div class="banner-pill" id="recommendationHistoryLabel">历史订单 0 条</div>
+                    </section>
+
+                    <div class="dishes-container" id="dishesContainer"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div class="bottom-cart-bar">
+        <button class="bottom-cart-summary" onclick="toggleCart()">
+            <div class="bottom-cart-icon">🛒<span class="bottom-cart-count" id="cartCount">0</span></div>
+            <div class="bottom-cart-text">
+                <div class="bottom-cart-total" id="bottomSubtotal">¥0.00</div>
+                <div class="bottom-cart-sub">点击查看购物车与明细</div>
+            </div>
+        </button>
+        <button class="checkout-btn fixed" onclick="checkout()">去结算</button>
+    </div>
+
+    <div class="cart-panel" id="cartPanel">
+        <div class="cart-header">
+            <div>
+                <h2>购物车</h2>
+                <p>随时调整数量，确认后去结算</p>
+            </div>
+            <button class="close-cart" onclick="toggleCart()">✕</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <p class="empty-cart">购物车为空</p>
+        </div>
+        <div class="cart-summary">
+            <div class="summary-row">
+                <span>小计</span>
+                <span id="subtotal">¥0</span>
+            </div>
+            <div class="summary-row">
+                <span>配送费</span>
+                <span id="deliveryFee">¥5</span>
+            </div>
+            <div class="summary-row total">
+                <span>合计</span>
+                <span id="total">¥0</span>
+            </div>
+            <button class="checkout-btn" onclick="checkout()">去结算</button>
+        </div>
+    </div>
+
+    <div class="modal" id="dishModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeDishModal()">✕</button>
+            <div class="modal-body modal-dish-layout">
+                <img id="modalImage" src="" alt="菜品图片" class="modal-image">
+                <div class="modal-info">
+                    <h2 id="modalName"></h2>
+                    <p id="modalDescription" class="modal-description"></p>
+
+                    <div class="modal-metrics">
+                        <div class="modal-metric-card">
+                            <span class="modal-metric-label">好评</span>
+                            <span class="modal-metric-value positive" id="modalGoodReviewCount">0</span>
+                        </div>
+                        <div class="modal-metric-card">
+                            <span class="modal-metric-label">差评</span>
+                            <span class="modal-metric-value negative" id="modalBadReviewCount">0</span>
+                        </div>
+                        <div class="modal-metric-card">
+                            <span class="modal-metric-label">评分</span>
+                            <span class="modal-metric-value highlight" id="modalRating">0.0</span>
+                        </div>
+                        <div class="modal-metric-card">
+                            <span class="modal-metric-label">总评论</span>
+                            <span class="modal-metric-value" id="modalTotalReviewCount">0</span>
+                        </div>
+                    </div>
+
+                    <div class="modal-price">
+                        <span id="modalPrice"></span>
+                    </div>
+
+                    <div class="specifications">
+                        <h3>选择规格</h3>
+                        <div class="spec-options" id="specOptions"></div>
+                    </div>
+
+                    <div class="quantity-selector">
+                        <h3>数量</h3>
+                        <div class="quantity-control">
+                            <button type="button" onclick="decreaseQuantity()">-</button>
+                            <input type="number" id="modalQuantity" min="1" max="99" value="1">
+                            <button type="button" onclick="increaseQuantity()">+</button>
+                        </div>
+                    </div>
+
+                    <button class="add-to-cart-btn" onclick="addToCart()">加入购物车</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="addProductModal">
+        <div class="modal-content add-product-content">
+            <button class="modal-close" onclick="closeAddProductModal()">✕</button>
+            <div class="modal-body modal-form-layout">
+                <div class="form-title-group">
+                    <h2>添加新商品</h2>
+                    <p>保持现有功能，只将表单视觉切换为美团风格卡片式布局。</p>
+                </div>
+
+                <form id="addProductForm" onsubmit="handleAddProduct(event)">
+                    <div class="form-group">
+                        <label for="productImage">商品图片</label>
+                        <div class="image-upload-area" onclick="document.getElementById('productImage').click()">
+                            <div id="imagePreview" class="image-preview">
+                                <span class="upload-icon">📷</span>
+                                <span class="upload-text">点击上传图片</span>
+                            </div>
+                            <input type="file" id="productImage" accept="image/*" onchange="previewImage(event)" style="display: none;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productName">商品名称 <span class="required">*</span></label>
+                        <input type="text" id="productName" placeholder="例如：清蒸大虾" required maxlength="50">
+                    </div>
+
+                    <div class="form-group form-grid-2">
+                        <div>
+                            <label for="productCategory">所属分类 <span class="required">*</span></label>
+                            <select id="productCategory" required></select>
+                        </div>
+                        <div>
+                            <label for="productPrice">价格(元) <span class="required">*</span></label>
+                            <input type="number" id="productPrice" placeholder="例如：68" min="0" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productDescription">商品描述</label>
+                        <textarea id="productDescription" placeholder="例如：新鲜大虾，清蒸制作" maxlength="100" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>规格设置（每行一个）</label>
+                        <textarea id="productSpecs" placeholder="例如：&#10;半份&#10;一份&#10;两份" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group form-grid-2">
+                        <div>
+                            <label for="productFlavorTags">口味标签</label>
+                            <textarea id="productFlavorTags" placeholder="例如：辣, 麻辣, 清淡" rows="3"></textarea>
+                        </div>
+                        <div>
+                            <label for="productIngredientTags">食材标签</label>
+                            <textarea id="productIngredientTags" placeholder="例如：鸡肉, 牛肉, 海鲜, 蔬菜" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-grid-3">
+                        <div>
+                            <label for="productSales">初始销售量</label>
+                            <input type="number" id="productSales" placeholder="例如：100" min="0" value="0">
+                        </div>
+                        <div>
+                            <label for="productGoodReviewCount">好评数</label>
+                            <input type="number" id="productGoodReviewCount" placeholder="例如：120" min="0" value="0">
+                        </div>
+                        <div>
+                            <label for="productBadReviewCount">差评数</label>
+                            <input type="number" id="productBadReviewCount" placeholder="例如：8" min="0" value="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productRating">评分（0~5）</label>
+                        <input type="number" id="productRating" placeholder="例如：4.8" min="0" max="5" step="0.1" value="0">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" onclick="closeAddProductModal()">取消</button>
+                        <button type="submit" class="btn-submit">添加商品</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="orderHistoryModal">
+        <div class="modal-content history-modal-content">
+            <button class="modal-close" onclick="closeOrderHistoryModal()">✕</button>
+            <div class="modal-body">
+                <div class="history-modal-header">
+                    <div>
+                        <h2>最近 20 条订单历史</h2>
+                        <p class="history-modal-subtitle">每次点击“去结算”成功后都会写入数据库</p>
+                    </div>
+                </div>
+                <div class="order-history-list" id="orderHistoryList">
+                    <p class="empty-cart">暂无订单历史</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
